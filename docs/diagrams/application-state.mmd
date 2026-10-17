@@ -1,0 +1,31 @@
+stateDiagram-v2
+    direction LR
+
+    [*] --> Draft: إنشاء الطلب
+    Draft --> Draft: تعديل وحفظ المسودة
+    Draft --> SubmittedCompanyReview: إرسال الطلب
+    Draft --> CancelledByStudent: إلغاء قبل الاعتماد
+
+    SubmittedCompanyReview --> CompanyRejected: رفض الشركة مع السبب عند توفره
+    SubmittedCompanyReview --> CollegeReview: موافقة الشركة
+    SubmittedCompanyReview --> CancelledByStudent: إلغاء قبل الاعتماد النهائي
+
+    CollegeReview --> Approved: اعتماد الكلية النهائي وحجز المقعد
+    CollegeReview --> CollegeRejected: رفض الكلية
+    CollegeReview --> CancelledByStudent: إلغاء قبل الاعتماد النهائي
+
+    CompanyRejected --> [*]
+    CollegeRejected --> [*]
+    CancelledByStudent --> [*]
+    Approved --> [*]
+
+    note right of Approved
+      المقعد يُحجز عند هذه المرحلة فقط.
+      الطلبات المنتظرة أو المرفوضة لا تحجز مقعدًا.
+    end note
+
+    note right of CompanyRejected
+      إعادة التقديم على الفرصة نفسها
+      ممكنة فقط إذا سمحت الشركة،
+      وتكون كتقديم جديد.
+    end note

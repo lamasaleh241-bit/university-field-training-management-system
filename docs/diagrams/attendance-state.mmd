@@ -1,0 +1,40 @@
+stateDiagram-v2
+    direction LR
+
+    [*] --> NoRecord: لا يوجد سجل لليوم
+    NoRecord --> CheckInSent: تسجيل الحضور مع موقع
+    CheckInSent --> PendingCheckOut: استلام التسجيل
+    CheckInSent --> ExceptionNeeded: GPS غير دقيق أو خارج النطاق
+    CheckInSent --> SendFailed: انقطاع الاتصال قبل وصول الطلب
+    SendFailed --> NoRecord: إعادة المحاولة بعد عودة الاتصال
+    ExceptionNeeded --> ExceptionPending: إرسال طلب استثناء مع السبب
+
+    PendingCheckOut --> Incomplete: لا يوجد وقت انصراف
+    Incomplete --> CorrectionPending: الطالب يرسل تصحيحًا ووقت الانصراف والسبب
+    PendingCheckOut --> PendingCompanyReview: تسجيل الانصراف وإرسال السجل
+    PendingCompanyReview --> Approved: اعتماد مسؤول الشركة
+    PendingCompanyReview --> Rejected: رفض مسؤول الشركة
+    PendingCompanyReview --> CorrectionPending: طلب تصحيح مطلوب
+    ExceptionPending --> Approved: مسؤول الشركة يعتمد طلب الاستثناء
+    ExceptionPending --> Rejected: مسؤول الشركة يرفض طلب الاستثناء
+    CorrectionPending --> Approved: مسؤول الشركة يعتمد التصحيح
+    CorrectionPending --> Rejected: مسؤول الشركة يرفض التصحيح
+
+    Approved --> [*]
+    Rejected --> [*]
+
+    note right of Approved
+      تُحتسب الساعات من الحضور إلى الانصراف،
+      دون خصم الاستراحات، وبحد يومي التخصص.
+      لا يتجاوز الاعتماد اليومي قرار مسؤول الشركة.
+    end note
+
+    note right of Incomplete
+      السجل غير المكتمل لا يحتسب
+      حتى تصحيح الانصراف واعتماده.
+    end note
+
+    note right of ExceptionNeeded
+      لا يوجد اعتماد تلقائي إذا كانت
+      دقة GPS أسوأ من 100م أو خارج النطاق.
+    end note

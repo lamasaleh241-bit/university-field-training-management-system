@@ -1,0 +1,582 @@
+// University Field Training Management System — logical PostgreSQL schema
+// Tenant isolation: PostgreSQL RLS on every college-scoped table.
+// Set trusted college context server-side; never trust a client-supplied college_id alone.
+
+Enum account_status {
+  pending_activation
+  active
+  rejected
+  suspended
+}
+
+Enum assignment_status {
+  pending
+  active
+  revoked
+}
+
+Enum opportunity_status {
+  open
+  closed
+}
+
+Enum application_status {
+  draft
+  submitted_company_review
+  company_rejected
+  college_review
+  approved
+  college_rejected
+  cancelled_by_student
+}
+
+Enum site_approval_status {
+  pending
+  approved
+  rejected
+}
+
+Enum training_status {
+  active
+  completed
+  ended_early
+  awaiting_evaluation
+}
+
+Enum attendance_status {
+  incomplete
+  pending_company_approval
+  approved
+  rejected
+  exception_pending
+}
+
+Enum attendance_request_type {
+  correction
+  gps_exception
+  connectivity_exception
+  forgot_check_in
+  forgot_check_out
+}
+
+Enum review_status {
+  pending_company_review
+  approved
+  rejected
+}
+
+Enum evaluation_status {
+  draft
+  submitted
+}
+
+Enum evaluation_rating {
+  excellent
+  very_good
+  good
+  needs_improvement
+}
+
+Enum conversation_status {
+  open
+  closed
+}
+
+Enum dispute_status {
+  open
+  under_review
+  resolved
+  closed
+}
+
+Enum official_request_status {
+  submitted
+  under_review
+  approved
+  rejected
+}
+
+Enum email_delivery_status {
+  not_required
+  pending
+  sent
+  failed
+}
+
+Table colleges {
+  id uuid [pk]
+  name_ar text [not null]
+  status text [not null, note: 'active/inactive; administration policy to be finalized']
+  timezone text [not null, note: 'Valid IANA timezone; set by system admin when creating the college; attendance date is derived in this zone']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table users {
+  id uuid [pk]
+  college_id uuid [ref: > colleges.id, note: 'NULL for system admin only in this design']
+  email text [not null, unique]
+  password_hash text [not null]
+  email_verified_at timestamptz
+  account_status account_status [not null]
+  first_name text [not null]
+  last_name text [not null]
+  phone text
+  student_number text [note: 'Required for student role only; uniqueness policy not decided']
+  company_name text [note: 'Required for company representative role only']
+  specialty_id uuid [ref: > specialties.id, note: 'Required for student only; nullable for other roles']
+  activation_approved_by uuid [ref: > users.id]
+  activation_approved_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, id) [unique]
+    (college_id, account_status)
+  }
+  Note: 'Application/trigger constraints require student_number for student and company_name for company_representative. Email verification precedes college activation approval.'
+}
+
+Table roles {
+  id int [pk, increment]
+  code text [not null, unique, note: 'student, academic_supervisor, company_representative, college_admin, system_admin']
+  name_ar text [not null]
+}
+
+Table user_roles {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  role_id int [not null, ref: > roles.id]
+  college_id uuid [ref: > colleges.id]
+  granted_by uuid [ref: > users.id]
+  granted_at timestamptz [not null]
+  status assignment_status [not null]
+
+  indexes {
+    (user_id, role_id, college_id)
+  }
+  Note: 'college_id is NULL for system_admin. Whether users may hold multiple roles/colleges remains open.'
+}
+
+Table specialties {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  name_ar text [not null]
+  code text
+  is_active boolean [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, id) [unique]
+    (college_id, name_ar) [unique]
+  }
+}
+
+Table specialty_training_requirements {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  specialty_id uuid [not null, ref: > specialties.id, unique]
+  minimum_total_minutes int [not null]
+  training_duration_days int [not null]
+  daily_work_limit_minutes int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Note: 'Unit/definition of training_duration_days and historical effects of changing requirements are open.'
+}
+
+Table training_opportunities {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  created_by_user_id uuid [not null, ref: > users.id]
+  title text [not null]
+  task_description text [not null]
+  start_date date [not null]
+  end_date date [not null]
+  seat_limit int [not null, note: 'Positive integer; seat is reserved only at final college approval']
+  status opportunity_status [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, status, start_date)
+    (college_id, id) [unique]
+  }
+  Note: 'Hide from students when closed or full. Fullness counts only college-final-approved applications; pending and rejected applications do not reserve seats. Enforce approvals and capacity atomically.'
+}
+
+Table opportunity_specialties {
+  opportunity_id uuid [not null, ref: > training_opportunities.id]
+  college_id uuid [not null, ref: > colleges.id]
+  specialty_id uuid [not null, ref: > specialties.id]
+
+  indexes {
+    (opportunity_id, specialty_id) [pk]
+  }
+  Note: 'Specialty and opportunity must belong to the same college; enforce with composite FK/trigger.'
+}
+
+Table training_sites {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  created_by_user_id uuid [not null, ref: > users.id]
+  name text
+  address_text text
+  latitude numeric(9,6) [not null]
+  longitude numeric(9,6) [not null]
+  geofence_radius_meters int [not null, default: 150]
+  gps_accuracy_threshold_meters int [not null, default: 100]
+  approval_status site_approval_status [not null]
+  approved_by_user_id uuid [ref: > users.id]
+  approved_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, id) [unique]
+    (college_id, approval_status)
+  }
+  Note: 'Only college admin approves/rejects new locations and sets per-site radius. GPS accuracy limit is 100m and may be a shared setting rather than a site column.'
+}
+
+Table opportunity_sites {
+  opportunity_id uuid [not null, ref: > training_opportunities.id]
+  site_id uuid [not null, ref: > training_sites.id]
+  college_id uuid [not null, ref: > colleges.id]
+
+  indexes {
+    (opportunity_id, site_id) [pk]
+  }
+  Note: 'Opportunity/site must share college_id. Only approved sites may be used for attendance.'
+}
+
+Table file_assets {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  uploaded_by_user_id uuid [not null, ref: > users.id]
+  storage_key text [not null]
+  original_filename text [not null]
+  mime_type text [not null]
+  size_bytes bigint [not null]
+  sha256 text
+  created_at timestamptz [not null]
+
+  Note: 'Private storage only; short-lived authorized download links. Resume must be PDF. Limits and scanning policy remain open.'
+}
+
+Table training_applications {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  opportunity_id uuid [not null, ref: > training_opportunities.id]
+  student_user_id uuid [not null, ref: > users.id]
+  student_message text
+  resume_file_id uuid [ref: > file_assets.id]
+  status application_status [not null]
+  company_decided_by uuid [ref: > users.id]
+  company_decided_at timestamptz
+  company_rejection_reason text
+  college_decided_by uuid [ref: > users.id]
+  college_decided_at timestamptz
+  college_rejection_reason text
+  submitted_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, id) [unique]
+    (college_id, student_user_id, status)
+    (college_id, opportunity_id, status)
+  }
+  Note: 'Enforce one active application per student. A seat is reserved only on final college approval, atomically.'
+}
+
+Table application_status_history {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  application_id uuid [not null, ref: > training_applications.id]
+  from_status text
+  to_status text [not null]
+  changed_by_user_id uuid [ref: > users.id]
+  reason text
+  changed_at timestamptz [not null]
+
+  indexes {
+    (college_id, application_id, changed_at)
+  }
+  Note: 'Append-only status timeline.'
+}
+
+Table trainings {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  application_id uuid [not null, unique, ref: > training_applications.id]
+  student_user_id uuid [not null, ref: > users.id]
+  opportunity_id uuid [not null, ref: > training_opportunities.id]
+  specialty_id uuid [not null, ref: > specialties.id]
+  academic_supervisor_user_id uuid [not null, ref: > users.id]
+  start_date date
+  end_date date
+  status training_status [not null]
+  ended_at timestamptz
+  ended_by_user_id uuid [ref: > users.id]
+  end_request_id uuid [ref: > official_requests.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, id) [unique]
+    (college_id, student_user_id, status)
+  }
+}
+
+Table training_supervisor_assignments {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  supervisor_user_id uuid [not null, ref: > users.id]
+  assigned_by_user_id uuid [not null, ref: > users.id]
+  start_at timestamptz [not null]
+  end_at timestamptz
+  change_request_id uuid [ref: > official_requests.id]
+
+  indexes {
+    (college_id, training_id, start_at)
+  }
+  Note: 'At most one current assignment per training; enforce with partial unique index.'
+}
+
+Table attendance_records {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  attendance_date date [not null, note: 'Local date in colleges.timezone']
+  check_in_at timestamptz
+  check_in_latitude numeric(9,6)
+  check_in_longitude numeric(9,6)
+  check_in_accuracy_meters numeric(7,2)
+  check_in_site_id uuid [ref: > training_sites.id]
+  check_out_at timestamptz
+  check_out_latitude numeric(9,6)
+  check_out_longitude numeric(9,6)
+  check_out_accuracy_meters numeric(7,2)
+  check_out_site_id uuid [ref: > training_sites.id]
+  status attendance_status [not null]
+  is_holiday_work boolean [not null]
+  company_reviewed_by uuid [ref: > users.id]
+  company_reviewed_at timestamptz
+  rejection_reason text
+  approved_minutes int [note: 'Derived: min(check_out-check_in, daily specialty limit); only for company-approved complete records']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (college_id, training_id, attendance_date)
+  }
+  Note: 'No offline attendance. Unapproved, incomplete, or rejected records do not count.'
+}
+
+Table attendance_change_requests {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  attendance_record_id uuid [ref: > attendance_records.id]
+  training_id uuid [not null, ref: > trainings.id]
+  student_user_id uuid [not null, ref: > users.id]
+  request_type attendance_request_type [not null]
+  requested_check_in_at timestamptz
+  requested_check_out_at timestamptz
+  reason text [not null]
+  status review_status [not null]
+  decided_by_user_id uuid [ref: > users.id]
+  decided_at timestamptz
+  decision_reason text
+  created_at timestamptz [not null]
+}
+
+Table supervisor_notes {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  author_supervisor_user_id uuid [not null, ref: > users.id]
+  note_text text [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table supervisor_note_revisions {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  note_id uuid [not null, ref: > supervisor_notes.id]
+  changed_by_user_id uuid [not null, ref: > users.id]
+  previous_text text
+  new_text text [not null]
+  changed_at timestamptz [not null]
+
+  Note: 'Append-only; college admin is read-only.'
+}
+
+Table final_evaluations {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, unique, ref: > trainings.id]
+  submitted_by_user_id uuid [not null, ref: > users.id]
+  general_comment text
+  status evaluation_status [not null]
+  submitted_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table evaluation_criteria {
+  id int [pk, increment]
+  code text [not null, unique]
+  name_ar text [not null]
+  display_order int [not null]
+  is_active boolean [not null]
+}
+
+Table evaluation_items {
+  evaluation_id uuid [not null, ref: > final_evaluations.id]
+  criterion_id int [not null, ref: > evaluation_criteria.id]
+  rating evaluation_rating [not null]
+  comment text
+
+  indexes {
+    (evaluation_id, criterion_id) [pk]
+  }
+  Note: 'comment is required when rating is needs_improvement.'
+}
+
+Table conversations {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  status conversation_status [not null]
+  created_at timestamptz [not null]
+}
+
+Table conversation_participants {
+  conversation_id uuid [not null, ref: > conversations.id]
+  user_id uuid [not null, ref: > users.id]
+  college_id uuid [not null, ref: > colleges.id]
+  joined_at timestamptz [not null]
+
+  indexes {
+    (conversation_id, user_id) [pk]
+  }
+  Note: 'Exactly two participants per MVP conversation; both must be training parties.'
+}
+
+Table messages {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  conversation_id uuid [not null, ref: > conversations.id]
+  sender_user_id uuid [not null, ref: > users.id]
+  body_text text [not null]
+  sent_at timestamptz [not null]
+  read_at timestamptz
+
+  Note: 'Text only. Sender must be a participant. Reading receipts are not a confirmed requirement.'
+}
+
+Table dispute_reports {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  reported_by_user_id uuid [not null, ref: > users.id]
+  issue_description text [not null]
+  status dispute_status [not null]
+  college_decision_by uuid [ref: > users.id]
+  college_decision text
+  college_decided_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table official_requests {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  training_id uuid [not null, ref: > trainings.id]
+  requester_user_id uuid [not null, ref: > users.id]
+  request_type text [not null]
+  reason text [not null]
+  status official_request_status [not null]
+  decided_by_user_id uuid [ref: > users.id]
+  decision text
+  decided_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table official_request_files {
+  request_id uuid [not null, ref: > official_requests.id]
+  file_id uuid [not null, ref: > file_assets.id]
+  college_id uuid [not null, ref: > colleges.id]
+
+  indexes {
+    (request_id, file_id) [pk]
+  }
+}
+
+Table notifications {
+  id uuid [pk]
+  college_id uuid [not null, ref: > colleges.id]
+  recipient_user_id uuid [not null, ref: > users.id]
+  event_type text [not null]
+  title_ar text [not null]
+  body_ar text [not null]
+  related_entity_type text
+  related_entity_id uuid
+  in_app_created_at timestamptz
+  email_status email_delivery_status [not null]
+  email_sent_at timestamptz
+  read_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (college_id, recipient_user_id, created_at)
+  }
+}
+
+Table audit_logs {
+  id uuid [pk]
+  college_id uuid [ref: > colleges.id, note: 'NULL only for permitted central college-administration events']
+  actor_user_id uuid [ref: > users.id]
+  action text [not null]
+  entity_type text [not null]
+  entity_id uuid
+  reason text
+  metadata jsonb
+  occurred_at timestamptz [not null]
+
+  indexes {
+    (college_id, occurred_at)
+    (actor_user_id, occurred_at)
+  }
+  Note: 'Append-only. Conversation access events require actor, timestamp, reason, and related conversation/training; no message contents in metadata.'
+}
+
+// Tenant isolation / RLS implementation notes:
+// 1. Enable and FORCE ROW LEVEL SECURITY on every college-scoped table.
+// 2. Server sets a trusted transaction-local college context after authentication.
+// 3. Policies scope SELECT/INSERT/UPDATE/DELETE by that context and role authorization.
+// 4. Composite tenant-aware foreign keys or triggers enforce matching college_id across relationships.
+// 5. The system-admin role is not a blanket bypass; college setup has narrowly scoped policies.
+// 6. Verify each table and relationship with cross-college negative tests.
+
+// Logical references not inferable by DBML alone:
+Ref: users.(college_id, specialty_id) > specialties.(college_id, id)
+Ref: specialty_training_requirements.(college_id, specialty_id) > specialties.(college_id, id)
+Ref: opportunity_specialties.(college_id, opportunity_id) > training_opportunities.(college_id, id)
+Ref: opportunity_specialties.(college_id, specialty_id) > specialties.(college_id, id)
+Ref: opportunity_sites.(college_id, opportunity_id) > training_opportunities.(college_id, id)
+Ref: opportunity_sites.(college_id, site_id) > training_sites.(college_id, id)
+Ref: training_applications.(college_id, opportunity_id) > training_opportunities.(college_id, id)
+Ref: training_applications.(college_id, student_user_id) > users.(college_id, id)
+Ref: application_status_history.(college_id, application_id) > training_applications.(college_id, id)
+Ref: trainings.(college_id, application_id) > training_applications.(college_id, id)
+Ref: attendance_records.(college_id, training_id) > trainings.(college_id, id)
+Ref: attendance_change_requests.(college_id, attendance_record_id) > attendance_records.(college_id, id)
+Ref: conversations.(college_id, training_id) > trainings.(college_id, id)
+Ref: messages.(college_id, conversation_id) > conversations.(college_id, id)
+Ref: official_request_files.(college_id, request_id) > official_requests.(college_id, id)
