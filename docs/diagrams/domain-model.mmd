@@ -1,0 +1,88 @@
+flowchart LR
+    subgraph Roles["الأدوار (Roles)"]
+        SuperAdmin["المسؤول الأعلى (Super Admin)"]
+        CollegeAdmin["مسؤول التدريب في الكلية (College Training Admin)"]
+        ProviderAdmin["مسؤول جهة التدريب (Training Provider Admin)"]
+        Supervisor["المشرف الأكاديمي (Academic Supervisor)"]
+        Student["الطالب (Student)"]
+    end
+
+    subgraph Org["مجال الكلية"]
+        College["الكلية (College)<br/>نطاق مستقل بإعداداته وبياناته ومنطقته الزمنية"]
+        Specialty["التخصص (Specialty)<br/>تخصص تديره الكلية"]
+        Requirements["متطلبات التدريب (Training Requirements)<br/>الحد الأدنى للساعات والمدة وساعات العمل اليومية"]
+        Activation["طلب تفعيل الحساب (Account Activation Request)<br/>انتظار موافقة الكلية"]
+    end
+
+    subgraph Opp["مجال الفرص والطلبات"]
+        Opportunity["فرصة التدريب (Training Opportunity)<br/>مهام وتواريخ ومقاعد وحالة مفتوحة أو مغلقة"]
+        Site["موقع التدريب (Training Site)<br/>مكان معتمد للتحقق الجغرافي من الحضور"]
+        Application["طلب التدريب (Training Application)<br/>رسالة اختيارية وسيرة PDF اختيارية"]
+        StatusHistory["سجل حالات الطلب (Application Status History)<br/>الانتقالات وأوقاتها وأسبابها"]
+    end
+
+    subgraph Exec["مجال التدريب والحضور"]
+        Training["التدريب (Training)<br/>يبدأ باعتماد الطلب ويُغلق بالتقييم أو باستثناء موثق أو بالإنهاء"]
+        Assignment["إسناد المشرف (Supervisor Assignment)<br/>من يتابع التدريب وفترة تكليفه"]
+        Attendance["سجل الحضور (Attendance Record)<br/>حضور وانصراف بموقع لحظة التسجيل وقرار المراجعة"]
+        Correction["طلب تصحيح أو استثناء (Correction or Exception Request)<br/>عند النسيان أو المشكلة التقنية"]
+    end
+
+    subgraph Follow["مجال المتابعة والتقييم"]
+        Note["ملاحظة أداء (Supervisor Note)<br/>تدوين دوري من المشرف"]
+        NoteLog["سجل تغييرات الملاحظة (Note Change Log)<br/>النسخ السابقة ووقت التعديل"]
+        Evaluation["التقييم النهائي (Final Evaluation)<br/>وصفي بستة معايير ويقدَّم مرة واحدة"]
+    end
+
+    subgraph Comm["مجال التواصل والطلبات الرسمية والتدقيق"]
+        Conversation["محادثة (Conversation)<br/>رسائل نصية بين طرفين مرتبطين بالتدريب نفسه"]
+        Dispute["بلاغ نزاع (Dispute Report)<br/>بلاغ مكتوب داخل النظام يُحفظ مع القرار"]
+        Official["طلب رسمي (Official Request)<br/>طلب مكتوب بسبب ومستند اختياري ويُحفظ مع القرار"]
+        SupChange["طلب تغيير المشرف (Supervisor Change Request)<br/>طلب من الطالب مع السبب"]
+        Audit["سجل التدقيق (Audit Log)<br/>هوية الفاعل والوقت والسبب للعمليات الحساسة"]
+        Notification["إشعار (Notification)<br/>داخل النظام وبالبريد للأحداث المهمة"]
+    end
+
+    SuperAdmin -- "يضيف" --> College
+    Student & Supervisor & ProviderAdmin & CollegeAdmin -- "ينتمون إلى" --> College
+    College -- "تضم" --> Specialty
+    Specialty -- "تحدد لها الكلية" --> Requirements
+    Student -- "يختار" --> Specialty
+    Student & Supervisor & ProviderAdmin -- "يقدّم" --> Activation
+    CollegeAdmin -- "يقرر في" --> Activation
+
+    ProviderAdmin -- "ينشئ" --> Opportunity
+    Opportunity -- "تستهدف" --> Specialty
+    Opportunity -- "تحدد" --> Site
+    CollegeAdmin -- "يعتمد" --> Site
+    Student -- "يقدّم، بطلب نشط واحد كحد أقصى" --> Application
+    Application -- "موجّه إلى" --> Opportunity
+    Application -- "يحتفظ بـ" --> StatusHistory
+    ProviderAdmin -- "يراجع أولاً" --> Application
+    CollegeAdmin -- "يعتمد نهائياً" --> Application
+
+    Application -- "عند الاعتماد النهائي يبدأ" --> Training
+    Student -- "يلتحق بـ" --> Training
+    Supervisor -- "يتولى" --> Assignment
+    Assignment -- "يخص" --> Training
+    Student -- "يسجل" --> Attendance
+    Attendance -- "ضمن" --> Training
+    Attendance -- "يُطابَق مع" --> Site
+    Correction -- "يخص" --> Attendance
+
+    Supervisor -- "يدوّن" --> Note
+    Note -- "عن" --> Training
+    Note -- "يحتفظ بـ" --> NoteLog
+    ProviderAdmin -- "يعبّئ مرة واحدة" --> Evaluation
+    Evaluation -- "يخص" --> Training
+
+    Conversation -- "مرتبطة بـ" --> Training
+    Student & ProviderAdmin -- "يقدّم" --> Dispute & Official
+    Student -- "يقدّم" --> SupChange
+    CollegeAdmin -- "يقرر" --> Dispute & Official & SupChange
+    SupChange -- "عند الموافقة يُعيَّن بديل في" --> Assignment
+    Official -- "قد ينتهي بإنهاء" --> Training
+    Dispute & Official -. "شرط الاطلاع الاستثنائي" .-> Conversation
+    Conversation -- "الاطلاع الاستثنائي يُسجَّل في" --> Audit
+    Note -- "التعديلات تُسجَّل في" --> Audit
+    Application & Attendance & Training -- "تغيّر حالتها يولّد" --> Notification
