@@ -1,0 +1,17 @@
+@startuml
+' عينة تعلّم لتجربة المحرر والتصيير فقط.
+' ليست مخطط حالات الاستخدام المعتمد (يُبنى في الموضوع 11 من PRD وuser-flow).
+left to right direction
+skinparam packageStyle rectangle
+
+actor "الطالب" as Student
+actor "مسؤول جهة التدريب" as Provider
+
+rectangle "نظام إدارة التدريب الميداني الجامعي" {
+  usecase "التقديم على فرصة تدريب" as UC_Apply
+  usecase "مراجعة طلب التدريب" as UC_Review
+}
+
+Student --> UC_Apply
+Provider --> UC_Review
+@enduml
