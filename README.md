@@ -5,6 +5,7 @@
 ## الملفات
 
 - [`PRD.md`](./PRD.md): وثيقة متطلبات المنتج النهائية.
+- [`docs/srs-fr-01-07.md`](./docs/srs-fr-01-07.md): مواصفات متطلبات النظام (SRS) للمتطلبات FR-01 إلى FR-07 والإضافات المرتبطة بها.
 - [`docs/technical-design.md`](./docs/technical-design.md): التصميم التقني ومصفوفة الصلاحيات وشاشات الطالب.
 - [`docs/user-flow.md`](./docs/user-flow.md): تدفقات الأدوار وحالات الخطأ.
 - [`docs/database.dbml`](./docs/database.dbml): مخطط قاعدة البيانات بصيغة DBML.
