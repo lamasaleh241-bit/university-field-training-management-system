@@ -837,8 +837,7 @@ CREATE POLICY official_requests_read_related ON public.official_requests FOR SEL
 CREATE POLICY official_requests_insert_party ON public.official_requests FOR INSERT TO app_runtime
   WITH CHECK (college_id = app_private.current_college_id()
     AND requester_user_id = app_private.current_user_id()
-    AND app_private.can_read_training(training_id)
-    AND NOT app_private.is_college_admin(college_id));
+    AND app_private.can_read_training(training_id));
 CREATE POLICY official_requests_update_college_admin ON public.official_requests FOR UPDATE TO app_runtime
   USING (college_id = app_private.current_college_id() AND app_private.is_college_admin(college_id))
   WITH CHECK (college_id = app_private.current_college_id() AND app_private.is_college_admin(college_id));
