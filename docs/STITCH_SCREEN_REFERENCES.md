@@ -1,27 +1,31 @@
-# Step 21 — Stitch Screen References and Review Log
+# الخطوة 21 — سجل الشاشة المرجعية والمراجعة
 
-**Product:** University Field Training Management System  
-**Source:** `PRD.md`, `docs/UX_BLUEPRINT.md`, `docs/SCREEN_INVENTORY.md`  
-**Screen:** S01 — فرص التدريب / Browse Training Opportunities  
-**Route (proposed):** `/student/opportunities`  
-**Prompt:** `docs/STITCH_MASTER_PROMPT.md`
+**المشروع:** نظام إدارة التدريب الميداني الجامعي  
+**لغة التطبيق:** العربية بالكامل، واتجاه الواجهة RTL.  
+**المراجع:** `PRD.md` و`docs/UX_BLUEPRINT.md` و`docs/SCREEN_INVENTORY.md`  
+**الشاشة:** S01 — «فرص التدريب» الخاصة بالطالب  
+**المسار المقترح:** `/student/opportunities`  
+**ملف البرومبت:** `docs/STITCH_MASTER_PROMPT.md`
 
-| Item | Actual status / evidence |
+| البند | الحالة الفعلية |
 |---|---|
-| Reference screen | S01 only (student opportunity browse) |
-| Prompt prepared | **Done** — stored in repository |
-| Google Stitch generation | **Not Run** — no verified access to a Stitch session in this workflow |
-| Alternative design tool generation | **Not Run** — no actual alternative design artifact produced |
-| Screen link / ID | **None** — do not fabricate |
-| Screenshot | **None** |
-| Visual review: layout, hierarchy, readability, RTL | **Not Run** |
-| Responsive review (mobile/desktop) | **Not Run** |
-| Accessibility contrast/focus review | **Not Run** |
-| Decision source | PRD + UX Blueprint + Screen Inventory; visual palette is a **proposal** |
-| Approval | **Not Approved / Pending actual review** |
-| Step 21 completion | **Incomplete** until a real reference screen is generated, reviewed, and its evidence recorded |
+| اختيار شاشة مرجعية واحدة | تم — شاشة فرص التدريب |
+| إعداد البرومبت بالعربية | تم وحُفظ في GitHub |
+| إنشاء الشاشة في Google Stitch | **لم يُنفذ (Not Run)** — لا توجد جلسة Stitch متاحة ومتحقق منها في هذا المسار |
+| إنشاء الشاشة في أداة بديلة | **لم يُنفذ (Not Run)** — لا يوجد تصميم فعلي موثق |
+| رابط التصميم أو معرّفه | غير متوفر؛ لا يُختلق |
+| لقطة الشاشة | غير متوفرة |
+| فحص اللغة العربية واتجاه RTL | لم يُنفذ على تصميم فعلي |
+| فحص التخطيط والتسلسل البصري | لم يُنفذ |
+| فحص الهاتف وسطح المكتب | لم يُنفذ |
+| فحص إمكانية الوصول والتباين | لم يُنفذ |
+| مصدر قرارات المتطلبات | PRD ومخطط UX وجرد الشاشات |
+| الألوان والتفاصيل البصرية | مقترحات غير معتمدة |
+| اعتماد الشاشة | **غير معتمدة — بانتظار تصميم ومراجعة فعليين** |
+| اكتمال الخطوة 21 | **غير مكتملة** حتى إنشاء الشاشة ومراجعتها وتوثيق دليلها |
 
-## Next action
-Run the single-screen prompt in Google Stitch (or a genuinely accessible alternative), then record the real project/screen link or identifier, screenshots, review observations, refinements and reviewer decision here. **Never mark as Approved without an actual decision.**
+## الإجراء التالي
 
-This log intentionally distinguishes prepared documentation from a generated design.
+يُستخدم البرومبت العربي لإنشاء **شاشة واحدة فقط** في Google Stitch أو بديل متاح. بعد الإنشاء، يُسجل الرابط أو المعرّف الحقيقي، ولقطة الشاشة، وملاحظات مراجعة العربية وRTL والاستجابة وإمكانية الوصول، ثم قرار المراجعة الفعلي. لا توضع حالة «معتمد» دون قرار حقيقي.
+
+هذا السجل يميّز بين **إعداد المستندات** و**وجود تصميم مولّد بالفعل**.
