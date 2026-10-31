@@ -122,7 +122,7 @@ Table users {
   first_name text [not null]
   last_name text [not null]
   phone text
-  student_number text [note: 'Required for student role only; uniqueness policy not decided']
+  student_number text [note: 'Required for student role only; unique within each college; college manually verifies student number and specialty before activation (PRD decision 19)']
   company_name text [note: 'Required for company representative role only']
   specialty_id uuid [ref: > specialties.id, note: 'Required for student only; nullable for other roles']
   activation_approved_by uuid [ref: > users.id]
@@ -133,8 +133,9 @@ Table users {
   indexes {
     (college_id, id) [unique]
     (college_id, account_status)
+    (college_id, student_number) [unique, note: 'Unique student number per college; nullable for non-student roles']
   }
-  Note: 'Application/trigger constraints require student_number for student and company_name for company_representative. Email verification precedes college activation approval.'
+  Note: 'Application/trigger constraints require student_number for student and company_name for company_representative. College manually verifies student number and specialty before activation. Email verification precedes college activation approval.'
 }
 
 Table roles {
