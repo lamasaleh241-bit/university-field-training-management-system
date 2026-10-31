@@ -1,55 +1,59 @@
-# Step 21 — Google Stitch Master Prompt (Reference Screen Only)
+# الخطوة 21 — برومبت الشاشة المرجعية في Google Stitch
 
-**Status:** Prompt prepared; generation **Not Run** until an actual Stitch (or alternative design tool) result exists.  
-**Reference screen:** S01 — «فرص التدريب» / Browse Training Opportunities, route `/student/opportunities`.  
-**Source of truth:** `PRD.md`, `docs/UI_UX_REQUIREMENTS.md`, `docs/UX_BLUEPRINT.md`, `docs/SCREEN_INVENTORY.md`.  
-**Scope:** One representative MVP screen, not a multi-page app.
+**الحالة:** البرومبت جاهز، لكن توليد التصميم الفعلي **لم يُنفذ (Not Run)**.  
+**الشاشة المرجعية:** S01 — «فرص التدريب»، المسار `/student/opportunities`.  
+**المراجع المعتمدة:** `PRD.md` و`docs/UI_UX_REQUIREMENTS.md` و`docs/UX_BLUEPRINT.md` و`docs/SCREEN_INVENTORY.md`.
 
-## PROMPT 16 — Paste into Google Stitch
+## برومبت 16 — تصميم شاشة مرجعية واحدة
 
-Design **ONE** polished, realistic, accessible **Arabic RTL responsive web application screen** for a university field-training management system. This is the **Student — Browse Training Opportunities** screen (S01), not a generic dashboard and not an equipment marketplace.
+صمّم **شاشة واحدة فقط** لتطبيق ويب عربي لإدارة التدريب الميداني الجامعي، وهي شاشة **«فرص التدريب» الخاصة بالطالب**. يجب أن تكون الواجهة **باللغة العربية بالكامل وباتجاه RTL**؛ جميع العناوين والقوائم والأزرار والحقول والرسائل والتنبيهات بالعربية. لا تستخدم الإنجليزية في واجهة المستخدم، باستثناء بيانات تقنية لا بد منها مثل البريد الإلكتروني.
 
-### Product context and rules
-- Students are associated with one college and one specialty. Show only open training opportunities for the student's college and targeted specialty; opportunities disappear when closed or fully occupied.
-- The company representative creates the opportunities, not the student or college admin.
-- Each opportunity card should display a clear Arabic title, training company, short description of tasks, eligible specialty, start/end dates, and optionally an approved location and available seats when data exists.
-- Primary action on each card: «عرض التفاصيل» leading to opportunity details. Do **not** add direct acceptance or college approval controls here.
-- If the student already has an active application, do not show an unrestricted apply CTA; show a contextual notice and a link to «طلباتي» where relevant.
-- Navigation: right-side desktop sidebar with «لوحة التحكم»، «فرص التدريب» (active), «طلباتي»، «تدريبي الحالي»، «الحضور والانصراف»، «التقييم النهائي»، «الرسائل»، «الإشعارات»، «حسابي». Hide training-only navigation actions if inapplicable, rather than showing misleading enabled links.
-- Top bar: page title «فرص التدريب», college identity as neutral placeholder, notifications and account control. Do not invent a university brand/logo.
-- Arabic text must be readable and correctly right-aligned; numbers, email, dates must remain legible.
-- Example content is clearly illustrative; do not present fake company/student data as real.
+### سياق النظام وقواعد العمل
+- يرتبط الطالب بكلية واحدة وتخصص واحد. تُعرض له الفرص **المفتوحة** المرتبطة بكليته والمناسبة لتخصصه فقط؛ وتختفي الفرص المغلقة أو الممتلئة.
+- ينشئ ممثل جهة التدريب الفرص، وليس الطالب.
+- تعرض بطاقة الفرصة: عنوان التدريب، جهة التدريب، وصفًا مختصرًا للمهام، التخصص، تاريخ البداية والنهاية، وموقع التدريب والمقاعد المتاحة عندما تكون هذه البيانات متوفرة.
+- زر البطاقة الأساسي: **«عرض التفاصيل»**، وينتقل إلى تفاصيل الفرصة. لا تضف زر موافقة مباشرة أو اعتماد من الكلية في هذه الشاشة.
+- إذا كان لدى الطالب طلب نشط، لا تعرض زر تقديم يوحي بإمكان تقديم طلب نشط آخر؛ استخدم تنبيهًا مناسبًا مع رابط **«طلباتي»**.
+- شريط التنقل الجانبي في سطح المكتب يظهر من **اليمين**. عناصره بحسب ما ينطبق على حالة الطالب: «لوحة التحكم»، «فرص التدريب» (العنصر النشط)، «طلباتي»، «تدريبي الحالي»، «الحضور والانصراف»، «التقييم النهائي»، «الرسائل»، «الإشعارات»، «حسابي». أخفِ الإجراءات غير المتاحة بحسب حالة التدريب بدل إظهارها فعالة بصورة مضللة.
+- الشريط العلوي: «فرص التدريب»، تعريف محايد بالكلية، الإشعارات، الحساب. لا تخترع شعار جامعة أو هوية معتمدة.
+- استخدم محتوى تجريبيًا موضحًا على أنه مثال، ولا تعرض أسماء طلاب أو شركات مختلقة باعتبارها بيانات حقيقية.
 
-### Visual direction (proposal, not approved design)
-Calm contemporary university SaaS: warm off-white surfaces, deep navy text, restrained teal/blue accents, generous whitespace, readable Arabic typography, clear hierarchy, consistent 8px-based spacing as an optional starting point. Cards with subtle borders, strong headings, accessible contrast, obvious primary actions and focus outlines. Avoid decorative illustrations, gradients, clutter, financial widgets, gamification, or features outside MVP.
+### التوجه البصري المقترح — غير معتمد بعد
+واجهة جامعية احترافية هادئة: خلفيات فاتحة دافئة، نصوص كحلية داكنة، ولمسات أزرق أو تركواز محدودة، ومساحات مريحة للقراءة. استخدم خطًا عربيًا واضحًا، تباينًا جيدًا، تسلسلًا بصريًا مفهومًا، وبطاقات ذات حدود خفيفة وأزرار واضحة. تجنب الزخرفة المفرطة والرسوم غير الضرورية والميزات خارج النسخة الأولى MVP.
 
-### States to demonstrate within the SAME screen concept
-- Default: 3 illustrative opportunity cards with consistent metadata.
-- Loading: skeleton cards replacing content, not a second product screen.
-- Empty: «لا توجد فرص مفتوحة مناسبة لتخصصك في الوقت الحالي.» with a useful non-invented next step (e.g. «تحديث الفرص»).
-- Error: «تعذر تحميل فرص التدريب. تحقق من اتصالك وحاول مرة أخرى.» with «إعادة المحاولة».
-- Opportunity becomes unavailable: contextual notice «لم تعد هذه الفرصة متاحة للتقديم.» and refresh.
-- Do not pretend a submission succeeded unless the backend confirms it.
+### حالات الواجهة ضمن مفهوم الشاشة نفسها
+1. **الحالة العادية:** ثلاث بطاقات فرص تجريبية متسقة.
+2. **التحميل:** عناصر هيكلية مؤقتة (Skeleton) بدل البطاقات.
+3. **الفراغ:** «لا توجد فرص مفتوحة مناسبة لتخصصك في الوقت الحالي.» مع «تحديث الفرص».
+4. **الخطأ:** «تعذر تحميل فرص التدريب. تحقق من اتصالك وحاول مرة أخرى.» مع «إعادة المحاولة».
+5. **انتهاء إتاحة الفرصة:** «لم تعد هذه الفرصة متاحة للتقديم.» مع تحديث البيانات.
 
-### Responsive and accessibility
-Create a desktop layout and mobile adaptation of **this same screen**. At ~1440px, right sidebar + responsive card grid; at ~390px, collapsible navigation and single-column cards. Keep Arabic RTL semantics, keyboard focus visibility, contrast WCAG 4.5:1 normal text and 3:1 large text, labels not conveyed by color alone. Buttons remain reachable with touch.
+لا تعرض رسالة نجاح إرسال أو اعتماد قبل تأكيد الخادم.
 
-### Exclusions
-Do not design other screens, do not write application code, do not invent chat rooms, payment, continuous GPS tracking, offline attendance, automatic approvals, or extra dashboards. Search/filter controls are not a hard PRD requirement; omit them from the first reference unless the approved UI/UX document expressly requires them. Do not invent brand guidelines or approval status.
+### الاستجابة وإمكانية الوصول
+- صمّم عرض سطح مكتب تقريبًا بعرض 1440px: شريط جانبي أيمن وشبكة بطاقات مرنة.
+- صمّم تكيفًا للهاتف تقريبًا بعرض 390px **للشاشة نفسها**: تنقل قابل للفتح وبطاقات بعمود واحد.
+- التزم بالاتجاه RTL وترتيب القراءة الصحيح، مع وضوح الأرقام والتواريخ والبريد الإلكتروني.
+- اجعل التنقل بلوحة المفاتيح واضحًا، وحالات التركيز مرئية، والتباين لا يقل عن 4.5:1 للنص العادي و3:1 للنص الكبير.
+- لا تعتمد على اللون وحده لشرح الحالة.
 
-### Deliverable
-ONE reference screen design with desktop/mobile adaptations, plus brief rationale for layout, RTL, typography, colors, components and the four relevant UI states. Mark any uncertain design decision as **Proposed — Needs Review**.
+### حدود صارمة
+لا تنشئ أي شاشة أخرى. لا تكتب كود التطبيق. لا تضف الدفع أو التتبع المستمر للموقع أو الحضور دون اتصال أو الموافقات التلقائية أو ميزات غير منصوص عليها في MVP. لا تضف البحث أو الفلاتر إلا إذا نصت الوثائق المعتمدة عليها صراحة. لا تعتبر الألوان المقترحة هوية معتمدة.
 
-## PROMPT 19 — Targeted refinement only (after actual review)
+### المخرج المطلوب
+تصميم **شاشة مرجعية واحدة** مع تكيفها لسطح المكتب والهاتف، وشرح مختصر بالعربية لقرارات التخطيط والخط والألوان والمكونات وحالات الواجهة. أي قرار لم يُحسم يوضع عليه «مقترح — يحتاج مراجعة».
 
-Refine **only** the identified visual issue in the existing S01 reference screen: [insert observed issue]. Preserve the exact screen scope, approved product rules, Arabic RTL, navigation, content, and other design choices. Do not add screens, features, fields, or new product behavior. Return the revised same screen and explain the single correction.
+## برومبت 19 — تنقيح محدد بعد المراجعة الفعلية
 
-## Acceptance checklist
-- [ ] One actual screen generated in Stitch or an accessible alternative.
-- [ ] Layout, RTL, text hierarchy, contrast and touch targets visually inspected.
-- [ ] Mobile adaptation checked.
-- [ ] No new MVP feature or invented screen.
-- [ ] Screenshot/link/tool ID recorded in `docs/STITCH_SCREEN_REFERENCES.md`.
-- [ ] User/design reviewer explicitly approves before calling the screen Approved.
+حسّن **المشكلة البصرية المحددة فقط** في شاشة S01 الحالية: [اكتب المشكلة التي لوحظت فعليًا]. حافظ على نفس الشاشة والنطاق وقواعد العمل واللغة العربية واتجاه RTL وبقية قرارات التصميم. لا تضف شاشات أو ميزات أو حقولًا جديدة. قدّم النسخة المعدلة واذكر التغيير الوحيد.
 
-**Note:** This file is a prompt specification. Its presence in GitHub is **not** evidence of an actual generated design.
+## قائمة التحقق قبل الاعتماد
+- [ ] توليد شاشة فعلية واحدة في Google Stitch أو أداة بديلة متاحة.
+- [ ] فحص التخطيط والتسلسل البصري واللغة العربية واتجاه RTL.
+- [ ] فحص التكيف مع الهاتف وسطح المكتب.
+- [ ] فحص التباين وإمكانية الوصول.
+- [ ] التأكد من عدم اختراع شاشات أو ميزات خارج MVP.
+- [ ] تسجيل الرابط أو المعرف الحقيقي واللقطات في `docs/STITCH_SCREEN_REFERENCES.md`.
+- [ ] توثيق قرار مراجعة فعلي قبل وضع الحالة «معتمد».
+
+**مهم:** حفظ البرومبت في GitHub لا يعني أن التصميم قد أُنشئ أو اعتُمد.
