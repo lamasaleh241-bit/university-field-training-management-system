@@ -5,6 +5,7 @@
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 CREATE TYPE account_status AS ENUM ('pending_activation', 'active', 'rejected', 'suspended');
 CREATE TYPE assignment_status AS ENUM ('pending', 'active', 'revoked');
@@ -339,6 +340,13 @@ CREATE TABLE attendance_records (
   CONSTRAINT attendance_time_order CHECK (check_out_at IS NULL OR check_in_at IS NULL OR check_out_at >= check_in_at)
 );
 CREATE INDEX attendance_training_date_idx ON attendance_records (college_id, training_id, attendance_date);
+-- Multiple shifts per day are allowed, but their time intervals must never overlap.
+-- A check-in without checkout occupies the interval until it is completed.
+ALTER TABLE attendance_records ADD CONSTRAINT attendance_no_overlapping_intervals
+  EXCLUDE USING gist (
+    training_id WITH =,
+    tstzrange(check_in_at, coalesce(check_out_at, 'infinity'::timestamptz), '[)') WITH &&
+  ) WHERE (check_in_at IS NOT NULL);
 
 CREATE TABLE attendance_change_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
