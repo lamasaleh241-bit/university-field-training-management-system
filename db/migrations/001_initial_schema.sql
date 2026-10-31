@@ -83,6 +83,9 @@ CREATE TABLE users (
 );
 CREATE INDEX users_college_status_idx ON users (college_id, account_status);
 CREATE UNIQUE INDEX users_email_lower_uq ON users (lower(email));
+-- Student numbers are unique within a college; NULL remains allowed for non-student roles.
+CREATE UNIQUE INDEX users_college_student_number_uq
+  ON users (college_id, student_number) WHERE student_number IS NOT NULL;
 
 CREATE TABLE user_roles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
